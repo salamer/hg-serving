@@ -54,6 +54,8 @@ def hello():
 def envs():
     envs = os.environ
 
+    envs = {k: v for k, v in envs.items()}
+
     return envs
 
 @app.route('/pwd')
