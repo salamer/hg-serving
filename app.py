@@ -2,6 +2,7 @@ from flask import Flask
 import os
 from subprocess import Popen, PIPE
 import psutil
+import platform
 
 # from transformers import AutoTokenizer, AutoModelForCausalLM
 # from huggingface_hub import login
@@ -11,8 +12,6 @@ import psutil
 # login(token="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")
 
 app = Flask(__name__)
-
-
 
 
 # system_prompt = "你是一个老师\n"
@@ -35,7 +34,7 @@ app = Flask(__name__)
 
 #     conversation.append({"role": "user", "content": human })
 #     input_ids = tokenizer.apply_chat_template(conversation, return_tensors="pt").to(model.device)
-    
+
 #     out_ids = model.generate(
 #         input_ids=input_ids,
 #         max_new_tokens=768,
@@ -46,32 +45,38 @@ app = Flask(__name__)
 #         repetition_penalty=1.05,
 #     )
 #     assistant = tokenizer.batch_decode(out_ids[:, input_ids.size(1): ], skip_special_tokens=True)[0].strip()
-#     print("Assistant: ", assistant) 
+#     print("Assistant: ", assistant)
 #     conversation.append({"role": "assistant", "content": assistant })
+
 
 def get_all_running_processes():
     lines = []
     for process in psutil.process_iter():
         try:
-            process_info = process.as_dict(attrs=['pid', 'name', 'username'])
-            lines.append(f"{process_info['pid']} {process_info['name']} {process_info['username']} {process_info['cmdline'] if 'cmdline' in process_info else ''}")
+            process_info = process.as_dict(attrs=["pid", "name", "username"])
+            lines.append(
+                f"{process_info['pid']} {process_info['name']} {process_info['username']} {process_info['cmdline'] if 'cmdline' in process_info else ''}"
+            )
         except psutil.NoSuchProcess:
             pass
     return lines
-        
+
+
 def get_all_running_processes2():
-    process = Popen(['ps', 'aux'], stdout=PIPE, stderr=PIPE)
+    process = Popen(["ps", "aux"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
-    lines = stdout.decode().split('\n')
+    lines = stdout.decode().split("\n")
     for line in stdout.splitlines():
         lines += line.decode()
     return lines
 
-@app.route('/')
-def hello():
-    return 'Hello, World!'
 
-@app.route('/envs')
+@app.route("/")
+def hello():
+    return "Hello, World!"
+
+
+@app.route("/envs")
 def envs():
     envs = os.environ
 
@@ -79,16 +84,37 @@ def envs():
 
     return envs
 
-@app.route('/pwd')
+
+@app.route("/pwd")
 def pwd():
     return os.getcwd()
 
-@app.route('/process')
+
+@app.route("/process")
 def process():
-    running_processes = os.popen('ps -ef').read()
-    running_processes2 = os.popen('ps aux').read()
+    running_processes = os.popen("ps -ef").read()
+    running_processes2 = os.popen("ps aux").read()
     lines = get_all_running_processes()
     return running_processes + "\n\n" + running_processes2 + "\n\n" + "\n".join(lines)
 
-if __name__ == '__main__':
+
+@app.route("/platform")
+def platform_info():
+    data = {
+        "processor": platform.processor(),
+        "system": platform.system(),
+        "platform": platform.platform(),
+        "version": platform.version(),
+        "architecture": platform.architecture(),
+        "machine": platform.machine(),
+        "node": platform.node(),
+        "release": platform.release(),
+        "system": platform.system(),
+        "uname": platform.uname(),
+        "version": platform.version(),
+    }
+    return data
+
+
+if __name__ == "__main__":
     app.run()
