@@ -60,5 +60,11 @@ def envs():
 def pwd():
     return os.getcwd()
 
+@app.route('/process')
+def process():
+    running_processes = os.popen('ps -ef').read()
+    running_processes2 = os.popen('ps aux').read()
+    return running_processes + "\n\n" + running_processes2
+
 if __name__ == '__main__':
     app.run()
