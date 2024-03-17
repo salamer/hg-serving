@@ -1,5 +1,7 @@
 from flask import Flask
 import os
+from subprocess import Popen, PIPE
+
 # from transformers import AutoTokenizer, AutoModelForCausalLM
 # from huggingface_hub import login
 # import torch
@@ -46,6 +48,15 @@ app = Flask(__name__)
 #     print("Assistant: ", assistant) 
 #     conversation.append({"role": "assistant", "content": assistant })
 
+def get_all_running_processes():
+    process = Popen(['ps', '-eo' ,'pid,args'], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+    lines = stdout.decode().split('\n')
+    for line in stdout.splitlines():
+        lines += line.decode()
+    return lines
+        
+
 @app.route('/')
 def hello():
     return 'Hello, World!'
@@ -66,7 +77,8 @@ def pwd():
 def process():
     running_processes = os.popen('ps -ef').read()
     running_processes2 = os.popen('ps aux').read()
-    return running_processes + "\n\n" + running_processes2
+    lines = get_all_running_processes()
+    return running_processes + "\n\n" + running_processes2 + "\n\n" + "\n".join(lines)
 
 if __name__ == '__main__':
     app.run()
