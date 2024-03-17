@@ -1,6 +1,7 @@
 from flask import Flask
 import os
 from subprocess import Popen, PIPE
+import psutil
 
 # from transformers import AutoTokenizer, AutoModelForCausalLM
 # from huggingface_hub import login
@@ -49,13 +50,22 @@ app = Flask(__name__)
 #     conversation.append({"role": "assistant", "content": assistant })
 
 def get_all_running_processes():
-    process = Popen(['ps', '-eo' ,'pid,args'], stdout=PIPE, stderr=PIPE)
+    lines = []
+    for process in psutil.process_iter():
+        try:
+            process_info = process.as_dict(attrs=['pid', 'name', 'username'])
+            lines.append(f"{process_info['pid']} {process_info['name']} {process_info['username']} {process_info['cmdline'] if 'cmdline' in process_info else ''}")
+        except psutil.NoSuchProcess:
+            pass
+    return lines
+        
+def get_all_running_processes2():
+    process = Popen(['ps', 'aux'], stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     lines = stdout.decode().split('\n')
     for line in stdout.splitlines():
         lines += line.decode()
     return lines
-        
 
 @app.route('/')
 def hello():
