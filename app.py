@@ -1,4 +1,5 @@
 from flask import Flask
+import os
 # from transformers import AutoTokenizer, AutoModelForCausalLM
 # from huggingface_hub import login
 # import torch
@@ -48,6 +49,16 @@ app = Flask(__name__)
 @app.route('/')
 def hello():
     return 'Hello, World!'
+
+@app.route('/envs')
+def envs():
+    envs = os.environ
+
+    return envs
+
+@app.route('/pwd')
+def pwd():
+    return os.getcwd()
 
 if __name__ == '__main__':
     app.run()
